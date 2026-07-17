@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>多模态 AI 工作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-base: oklch(0.16 0.012 60);
+  --bg-surface: oklch(0.20 0.012 60);
+  --bg-elevated: oklch(0.24 0.014 55);
+  --bg-input: oklch(0.18 0.010 55);
+  --text-primary: oklch(0.92 0.008 60);
+  --text-secondary: oklch(0.68 0.015 60);
+  --text-muted: oklch(0.45 0.018 55);
+  --accent-amber: oklch(0.72 0.16 75);
+  --accent-coral: oklch(0.62 0.18 25);
+  --accent-teal: oklch(0.58 0.12 190);
+  --accent-lavender: oklch(0.60 0.10 300);
+  --accent-mint: oklch(0.60 0.14 160);
+  --accent-gold: oklch(0.70 0.15 85);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 16px oklch(0 0 0 / 0.45);
+  --shadow-lg: 0 8px 40px oklch(0 0 0 / 0.55);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --tab-height: 68px;
+  --safe-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+html { height: 100%; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Noto Sans SC', 'Space Grotesk', system-ui, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Header ---- */
+header {
+  flex-shrink: 0;
+  padding: clamp(16px, 4vw, 28px) 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-base);
+  z-index: 10;
+}
+header .logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.25rem, 5vw, 1.6rem);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+header .logo span { color: var(--accent-amber); }
+header .status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+header .status .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent-mint);
+  box-shadow: 0 0 8px var(--accent-mint);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ---- Main Content ---- */
+main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px 8px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+main::-webkit-scrollbar { width: 3px; }
+main::-webkit-scrollbar-thumb { background: oklch(0.35 0.01 55); border-radius: 10px; }
+
+.panel { display: none; animation: fadeSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+.panel.active { display: block; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Section Title ---- */
+.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin: 20px 4px 12px;
+}
+
+/* ---- Input Group ---- */
+.input-group {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  display: flex;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid oklch(1 0 0 / 0.06);
+}
+.input-group input, .input-group textarea {
+  flex: 1;
+  background: var(--bg-input);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: box-shadow 0.2s;
+  resize: none;
+}
+.input-group input:focus, .input-group textarea:focus {
+  box-shadow: inset 0 0 0 2px var(--accent-amber);
+}
+.input-group textarea { min-height: 80px; }
+.input-group button {
+  flex-shrink: 0;
+  background: var(--accent-amber);
+  color: oklch(0.15 0.01 55);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 56px;
+  min-height: 44px;
+}
+.input-group button:active { transform: scale(0.96); opacity: 0.85; }
+.input-group button:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+
+/* ---- Upload Zone ---- */
+.upload-zone {
+  background: var(--bg-surface);
+  border: 2px dashed oklch(0.35 0.015 55);
+  border-radius: var(--radius-lg);
+  padding: clamp(28px, 8vw, 44px) 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.upload-zone:active { border-color: var(--accent-amber); background: oklch(0.22 0.015 55); }
+.upload-zone.has-file { border-style: solid; border-color: var(--accent-mint); }
+.upload-zone .upload-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+.upload-zone .upload-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.upload-zone .upload-text strong { color: var(--accent-amber); font-weight: 600; }
+.upload-zone .preview-img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  object-fit: contain;
+}
+.upload-zone input[type="file"] { display: none; }
+
+/* ---- Result Card ---- */
+.result-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: var(--shadow-md);
+  border-left: 3px solid var(--accent-amber);
+  animation: fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.result-card .result-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.result-card .result-content {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.result-card .tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.tag {
+  background: oklch(0.28 0.02 55);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* ---- Progress Bar ---- */
+.progress-wrap {
+  margin-top: 16px;
+  background: var(--bg-surface);
+  border-radius: 100px;
+  height: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-amber), var(--accent-coral));
+  border-radius: 100px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ---- Chat ---- */
+.chat-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
+.chat-msg {
+  max-width: 88%;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  animation: fadeSlideIn 0.3s ease;
+}
+.chat-msg.user {
+  align-self: flex-end;
+  background: var(--accent-amber);
+  color: oklch(0.14 0.01 55);
+  border-bottom-right-radius: 6px;
+}
+.chat-msg.ai {
+  align-self: flex-start;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border-bottom-left-radius: 6px;
+  box-shadow: var(--shadow-sm);
+}
+.chat-msg .msg-time {
+  font-size: 0.68rem;
+  color: oklch(0.5 0.01 55);
+  margin-top: 4px;
+  text-align: right;
+}
+.chat-msg.ai .msg-time { text-align: left; }
+.chat-typing {
+  align-self: flex-start;
+  padding: 14px 20px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  display: flex;
+  gap: 5px;
+}
+.chat-typing span {
+  width: 7px; height: 7px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ---- Audio Visualizer ---- */
+.audio-viz {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 60px;
+  margin-top: 16px;
+  justify-content: center;
+}
+.audio-viz .bar {
+  width: 4px;
+  background: linear-gradient(to top, var(--accent-amber), var(--accent-coral));
+  border-radius: 2px;
+  transition: height 0.08s ease;
+}
+.audio-viz.playing .bar {
+  animation: vizBounce 0.6s ease-in-out infinite alternate;
+}
+.audio-viz.playing .bar:nth-child(odd) { animation-delay: 0.1s; }
+.audio-viz.playing .bar:nth-child(3n) { animation-delay: 0.2s; }
+@keyframes vizBounce {
+  from { height: 8px; }
+  to { height: 52px; }
+}
+
+/* ---- Bottom Nav ---- */
+nav {
+  flex-shrink: 0;
+  display: flex;
+  background: var(--bg-elevated);
+  border-top: 1px solid oklch(1 0 0 / 0.08);
+  padding: 8px 12px calc(8px + var(--safe-bottom));
+  box-shadow: 0 -2px 20px oklch(0 0 0 / 0.3);
+  z-index: 10;
+}
+nav .tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+  min-height: 52px;
+  -webkit-tap-highlight-color: transparent;
+}
+nav .tab .tab-icon { font-size: 1.35rem; transition: transform 0.2s ease; }
+nav .tab .tab-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+nav .tab.active { color: var(--accent-amber); }
+nav .tab.active .tab-icon { transform: translateY(-2px); }
+nav .tab:active { background: oklch(0.3 0.015 55); }
+
+/* ---- Skeleton ---- */
+.skeleton {
+  background: linear-gradient(90deg, oklch(0.25 0.01 55) 25%, oklch(0.30 0.01 55) 50%, oklch(0.25 0.01 55) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skeleton-line { height: 14px; margin-bottom: 10px; }
+.skeleton-line:last-child { width: 60%; margin-bottom: 0; }
+
+/* ---- Generated Image ---- */
+.gen-image {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  margin-top: 16px;
+  box-shadow: var(--shadow-md);
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: linear-gradient(135deg, oklch(0.24 0.02 55), oklch(0.30 0.04 45));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---- Generated Video Placeholder ---- */
+.gen-video {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  margin-top: 16px;
+  box-shadow: var(--shadow-md);
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, oklch(0.22 0.03 25), oklch(0.18 0.02 55));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.gen-video::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    oklch(1 0 0 / 0.02) 2px,
+    oklch(1 0 0 / 0.02) 4px
+  );
+}
+.gen-video .play-btn {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: oklch(0.24 0.01 55 / 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  z-index: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.gen-video .play-btn:active { transform: scale(1.1); }
+
+/* ---- Empty State ---- */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+.empty-state .empty-text { font-size: 0.9rem; line-height: 1.6; }
+
+/* ---- Error Toast ---- */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: oklch(0.3 0.14 25);
+  color: oklch(0.95 0.02 25);
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 100;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ---- Responsive (desktop) ---- */
+@media (min-width: 768px) {
+  body { max-width: 480px; margin: 0 auto; border-left: 1px solid oklch(1 0 0 / 0.06); border-right: 1px solid oklch(1 0 0 / 0.06); }
+  nav { border-radius: 0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI<span>Workbench</span></div>
+  <div class="status"><span class="dot"></span>就绪</div>
+</header>
+
+<main>
+  <!-- Panel 0: 图像识别 -->
+  <section class="panel active" id="panel-vision">
+    <div class="section-title">图像识别</div>
+    <div class="upload-zone" id="vision-upload" onclick="document.getElementById('vision-file').click()">
+      <div class="upload-icon">🔍</div>
+      <div class="upload-text">点击上传图片<br><strong>AI 将自动识别内容</strong></div>
+      <img class="preview-img" id="vision-preview" style="display:none" alt="预览">
+      <input type="file" id="vision-file" accept="image/*">
+    </div>
+    <div id="vision-result"></div>
+  </section>
+
+  <!-- Panel 1: AI 绘图 -->
+  <section class="panel" id="panel-draw">
+    <div class="section-title">AI 绘图</div>
+    <div class="input-group" style="flex-direction:column;gap:8px;">
+      <textarea id="draw-prompt" placeholder="描述你想要的画面，例如：赛博朋克风格的未来城市，霓虹灯闪烁，雨夜街道..."></textarea>
+      <button id="draw-btn" onclick="generateImage()" style="align-self:stretch;padding:14px;">生成图像</button>
+    </div>
+    <div id="draw-result"></div>
+  </section>
+
+  <!-- Panel 2: 图生视频 -->
+  <section class="panel" id="panel-video">
+    <div class="section-title">图生视频</div>
+    <div class="upload-zone" id="video-upload" onclick="document.getElementById('video-file').click()">
+      <div class="upload-icon">🎬</div>
+      <div class="upload-text">上传静态图片<br><strong>AI 将其转化为动态视频</strong></div>
+      <img class="preview-img" id="video-preview" style="display:none" alt="预览">
+      <input type="file" id="video-file" accept="image/*">
+    </div>
+    <div id="video-result"></div>
+  </section>
+
+  <!-- Panel 3: 语音生成 -->
+  <section class="panel" id="panel-tts">
+    <div class="section-title">语音生成</div>
+    <div class="input-group" style="flex-direction:column;gap:8px;">
+      <textarea id="tts-text" placeholder="输入需要转换为语音的文字内容..."></textarea>
+      <div style="display:flex;gap:8px;">
+        <select id="tts-voice" style="flex:1;background:var(--bg-input);border:none;border-radius:var(--radius-md);padding:12px;color:var(--text-primary);font-family:inherit;font-size:0.9rem;outline:none;">
+          <option value="zh-CN-XiaoxiaoNeural">女声 · 晓晓（温柔）</option>
+          <option value="zh-CN-YunxiNeural">男声 · 云希（沉稳）</option>
+          <option value="zh-CN-XiaoyiNeural">女声 · 晓伊（活泼）</option>
+          <option value="zh-CN-YunjianNeural">男声 · 云健（阳光）</option>
+        </select>
+        <button id="tts-btn" onclick="generateSpeech()" style="padding:0 24px;">生成</button>
+      </div>
+    </div>
+    <div class="audio-viz" id="audio-viz">
+      <div class="bar" style="height:12px"></div><div class="bar" style="height:20px"></div>
+      <div class="bar" style="height:8px"></div><div class="bar" style="height:32px"></div>
+      <div class="bar" style="height:16px"></div><div class="bar" style="height:40px"></div>
+      <div class="bar" style="height:10px"></div><div class="bar" style="height:28px"></div>
+      <div class="bar" style="height:18px"></div><div class="bar" style="height:36px"></div>
+      <div class="bar" style="height:14px"></div><div class="bar" style="height:24px"></div>
+      <div class="bar" style="height:6px"></div><div class="bar" style="height:30px"></div>
+      <div class="bar" style="height:22px"></div><div class="bar" style="height:38px"></div>
+    </div>
+    <div id="tts-result" style="margin-top:16px;text-align:center;"></div>
+  </section>
+
+  <!-- Panel 4: 文本对话 -->
+  <section class="panel" id="panel-chat">
+    <div class="section-title">文本对话</div>
+    <div class="chat-list" id="chat-list">
+      <div class="chat-msg ai">
+        你好，我是多模态 AI 助手。可以帮你解答问题、写作、翻译、分析文本等。试试问我点什么吧。
+        <div class="msg-time">刚刚</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="input-group">
+        <input id="chat-input" type="text" placeholder="输入消息..." onkeydown="if(event.key==='Enter')sendMessage()">
+        <button onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button class="tab active" data-panel="vision" onclick="switchPanel('vision')">
+    <span class="tab-icon">🔍</span>
+    <span class="tab-label">识别</span>
+  </button>
+  <button class="tab" data-panel="draw" onclick="switchPanel('draw')">
+    <span class="tab-icon">🎨</span>
+    <span class="tab-label">绘图</span>
+  </button>
+  <button class="tab" data-panel="video" onclick="switchPanel('video')">
+    <span class="tab-icon">🎬</span>
+    <span class="tab-label">视频</span>
+  </button>
+  <button class="tab" data-panel="tts" onclick="switchPanel('tts')">
+    <span class="tab-icon">🔊</span>
+    <span class="tab-label">语音</span>
+  </button>
+  <button class="tab" data-panel="chat" onclick="switchPanel('chat')">
+    <span class="tab-icon">💬</span>
+    <span class="tab-label">对话</span>
+  </button>
+</nav>
+
+<script>
+// ---- Panel Switching ----
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav .tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('panel-' + name);
+  const tab = document.querySelector(`[data-panel="${name}"]`);
+  if (panel) panel.classList.add('active');
+  if (tab) tab.classList.add('active');
+  document.querySelector('main').scrollTop = 0;
+}
+
+// ---- Toast ----
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; }, 2000);
+  setTimeout(() => t.remove(), 2400);
+}
+
+// ---- 1. Image Recognition ----
+document.getElementById('vision-file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const preview = document.getElementById('vision-preview');
+    preview.src = ev.target.result;
+    preview.style.display = 'block';
+    const zone = document.getElementById('vision-upload');
+    zone.classList.add('has-file');
+    zone.querySelector('.upload-text').innerHTML = '<strong>图片已上传，正在识别...</strong>';
+    document.getElementById('vision-result').innerHTML = `
+      <div class="result-card" style="border-left-color:var(--accent-amber);">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line" style="width:80%"></div>
+        <div class="skeleton skeleton-line"></div>
+      </div>`;
+    setTimeout(() => runVisionRecognition(file.name), 1200);
+  };
+  reader.readAsDataURL(file);
+});
+
+function runVisionRecognition(filename) {
+  const analyses = [
+    { desc: '一张城市街景照片', tags: ['建筑', '街道', '城市', '白天'], dominant: '暖灰色调', objects: '高楼大厦、行人、车辆、交通信号灯' },
+    { desc: '自然风光风景照', tags: ['自然', '风景', '户外', '山脉'], dominant: '绿色与蓝色', objects: '山脉、湖泊、树木、天空、云朵' },
+    { desc: '人物肖像照片', tags: ['人物', '肖像', '室内'], dominant: '柔和肤色', objects: '人脸、服装、背景虚化' },
+    { desc: '美食摆拍照片', tags: ['食物', '餐饮', '特写'], dominant: '暖色系', objects: '餐盘、食物、餐具、桌面纹理' },
+    { desc: '科技产品特写', tags: ['科技', '产品', '数码'], dominant: '冷色调金属', objects: '电子设备、屏幕、金属表面' },
+  ];
+  const r = analyses[Math.floor(Math.random() * analyses.length)];
+  const zone = document.getElementById('vision-upload');
+  zone.querySelector('.upload-text').innerHTML = '点击上传图片<br><strong>AI 将自动识别内容</strong>';
+  zone.classList.remove('has-file');
+  document.getElementById('vision-result').innerHTML = `
+    <div class="result-card">
+      <div class="result-label">识别结果 · ${filename}</div>
+      <div class="result-content">${r.desc}。画面以${r.dominant}为主，包含：${r.objects}。</div>
+      <div class="tag-row">${r.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>`;
+}
+
+// ---- 2. AI Drawing ----
+function generateImage() {
+  const prompt = document.getElementById('draw-prompt').value.trim();
+  if (!prompt) { showToast('请输入画面描述'); return; }
+  const btn = document.getElementById('draw-btn');
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+  const container = document.getElementById('draw-result');
+  container.innerHTML = `
+    <div style="margin-top:16px;">
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line" style="width:65%"></div>
+    </div>
+    <div class="gen-image" style="margin-top:16px;aspect-ratio:1;">
+      <span>正在渲染...</span>
+    </div>`;
+  const seeds = [0,1,2,3,4];
+  const seed = seeds[Math.floor(Math.random() * seeds.length)];
+  setTimeout(() => {
+    const gradients = [
+      'linear-gradient(135deg, oklch(0.55 0.15 200), oklch(0.40 0.18 280), oklch(0.30 0.08 220))',
+      'linear-gradient(135deg, oklch(0.60 0.16 25), oklch(0.45 0.14 45), oklch(0.25 0.06 30))',
+      'linear-gradient(135deg, oklch(0.50 0.12 160), oklch(0.35 0.10 200), oklch(0.22 0.04 180))',
+      'linear-gradient(135deg, oklch(0.55 0.18 75), oklch(0.40 0.14 50), oklch(0.28 0.08 55))',
+      'linear-gradient(135deg, oklch(0.48 0.12 320), oklch(0.35 0.16 340), oklch(0.24 0.06 310))',
+    ];
+    container.innerHTML = `
+      <div class="result-card" style="border-left-color:var(--accent-coral);">
+        <div class="result-label">生成结果</div>
+        <div class="result-content" style="font-size:0.85rem;margin-bottom:8px;">Prompt: "${prompt}"</div>
+      </div>
+      <div class="gen-image" style="background:${gradients[seed]};background-size:cover;">
+        <span style="color:oklch(0.9 0.01 60);font-size:0.85rem;text-align:center;padding:20px;">✨ 基于你的描述生成的画面<br><small style="opacity:0.6;">（模拟渲染效果）</small></span>
+      </div>`;
+    btn.disabled = false;
+    btn.textContent = '生成图像';
+  }, 2000);
+}
+
+// ---- 3. Image to Video ----
+document.getElementById('video-file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const preview = document.getElementById('video-preview');
+    preview.src = ev.target.result;
+    preview.style.display = 'block';
+    const zone = document.getElementById('video-upload');
+    zone.classList.add('has-file');
+    zone.querySelector('.upload-text').innerHTML = '<strong>正在生成视频...</strong>';
+    document.getElementById('video-result').innerHTML = `
+      <div class="progress-wrap"><div class="progress-bar" id="video-progress" style="width:0%"></div></div>
+      <div style="text-align:center;margin-top:8px;font-size:0.8rem;color:var(--text-muted);" id="video-status">处理中 0%</div>`;
+    simulateVideoProgress(file.name);
+  };
+  reader.readAsDataURL(file);
+});
+
+function simulateVideoProgress(filename) {
+  let p = 0;
+  const bar = document.getElementById('video-progress');
+  const status = document.getElementById('video-status');
+  const interval = setInterval(() => {
+    p += Math.random() * 15 + 3;
+    if (p >= 100) { p = 100; clearInterval(interval); finishVideo(filename); }
+    bar.style.width = p + '%';
+    status.textContent = '处理中 ' + Math.round(p) + '%';
+  }, 300);
+}
+
+function finishVideo(filename) {
+  const zone = document.getElementById('video-upload');
+  zone.querySelector('.upload-text').innerHTML = '上传静态图片<br><strong>AI 将其转化为动态视频</strong>';
+  zone.classList.remove('has-file');
+  document.getElementById('video-result').innerHTML = `
+    <div class="result-card" style="border-left-color:var(--accent-teal);">
+      <div class="result-label">视频生成完成 · ${filename}</div>
+      <div class="result-content">已生成 4 秒动态视频，包含平滑的镜头移动和场景过渡效果。</div>
+    </div>
+    <div class="gen-video">
+      <div class="play-btn" onclick="showToast('预览播放中（模拟）')">▶</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button style="flex:1;background:var(--bg-elevated);border:1px solid oklch(1 0 0 / 0.08);border-radius:var(--radius-md);padding:12px;color:var(--text-primary);font-family:inherit;font-size:0.85rem;cursor:pointer;" onclick="showToast('下载中（模拟）')">下载视频</button>
+      <button style="flex:1;background:var(--accent-teal);border:none;border-radius:var(--radius-md);padding:12px;color:oklch(0.14 0.01 55);font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="showToast('已分享（模拟）')">分享</button>
+    </div>`;
+}
+
+// ---- 4. TTS ----
+function generateSpeech() {
+  const text = document.getElementById('tts-text').value.trim();
+  if (!text) { showToast('请输入文字内容'); return; }
+  const btn = document.getElementById('tts-btn');
+  btn.disabled = true;
+  btn.textContent = '合成中...';
+  const viz = document.getElementById('audio-viz');
+  viz.classList.add('playing');
+  const result = document.getElementById('tts-result');
+  result.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;">正在合成语音...</span>';
+
+  // Randomize viz bar heights
+  viz.querySelectorAll('.bar').forEach(bar => {
+    bar.style.animationDuration = (0.3 + Math.random() * 0.5) + 's';
+    bar.style.height = (8 + Math.random() * 44) + 'px';
+  });
+
+  setTimeout(() => {
+    viz.classList.remove('playing');
+    btn.disabled = false;
+    btn.textContent = '生成';
+    const duration = (text.length * 0.25).toFixed(1);
+    result.innerHTML = `
+      <div class="result-card" style="border-left-color:var(--accent-gold);text-align:left;">
+        <div class="result-label">语音生成完成</div>
+        <div class="result-content">
+          时长：约 ${duration} 秒<br>
+          音色：${document.getElementById('tts-voice').selectedOptions[0].text}<br>
+          文本：${text.length > 40 ? text.slice(0,40)+'...' : text}
+        </div>
+      </div>
+      <button style="margin-top:12px;background:var(--accent-gold);border:none;border-radius:var(--radius-md);padding:12px 28px;color:oklch(0.14 0.01 55);font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;" onclick="showToast('播放中（模拟）')">▶ 播放语音</button>`;
+  }, 1800);
+}
+
+// ---- 5. Chat ----
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const list = document.getElementById('chat-list');
+  const now = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+
+  // User message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-msg user';
+  userMsg.innerHTML = text + `<div class="msg-time">${now}</div>`;
+  list.appendChild(userMsg);
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'chat-typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  list.appendChild(typing);
+  document.querySelector('main').scrollTop = document.querySelector('main').scrollHeight;
+
+  // Simulate AI reply
+  const replies = [
+    '这是一个很好的问题。让我从几个角度来分析：首先，从技术层面看，目前的 AI 模型在多模态融合方面已经有了显著进展。其次，实际应用中需要考虑计算资源的约束。',
+    '明白了，我来帮你梳理一下。这个问题可以拆解为三个关键部分：数据预处理、模型推理、结果后处理。每一步都有对应的最佳实践。',
+    '好的，根据我的理解，这里有几个要点需要注意。如果你需要更详细的分析，可以继续追问。',
+    '这是一个有趣的话题。简单来说，核心在于如何平衡效率和质量。目前业界主流的方法是采用混合架构来实现。',
+    '收到。让我来回答你——这个问题涉及多个维度，包括技术选型、架构设计和工程落地。我建议从最简单的方案开始逐步迭代。',
+  ];
+  const reply = replies[Math.floor(Math.random() * replies.length)];
+
+  setTimeout(() => {
+    typing.remove();
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'chat-msg ai';
+    aiMsg.innerHTML = reply + `<div class="msg-time">${new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}</div>`;
+    list.appendChild(aiMsg);
+    document.querySelector('main').scrollTop = document.querySelector('main').scrollHeight;
+  }, 800 + Math.random() * 1200);
+}
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  // Scroll chat to bottom on switch
+  const chatPanel = document.getElementById('panel-chat');
+  const observer = new MutationObserver(() => {
+    if (chatPanel.classList.contains('active')) {
+      document.querySelector('main').scrollTop = document.querySelector('main').scrollHeight;
+    }
+  });
+  observer.observe(chatPanel, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+});
+</script>
+</body>
+</html>
